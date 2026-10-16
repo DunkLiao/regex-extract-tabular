@@ -1,0 +1,57 @@
+﻿<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="完全在瀏覽器內執行的正則表達式批次提取與資料匯出工具。">
+  <title>Regex Extract & Tabular</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Regex Extract 首頁"><span class="brand-mark">R</span><span><strong>Regex Extract</strong><small>TEXT → STRUCTURED DATA</small></span></a>
+      <div class="header-actions">
+        <label class="select-wrap"><span class="sr-only">選擇範例</span><select id="sampleSelect"><option value="">載入範例…</option><option value="nginx">Nginx 訪問日誌</option><option value="orders">訂單發票</option><option value="contacts">聯絡人清單</option><option value="commits">Git Commit</option></select></label>
+        <button class="button subtle" id="clearButton" type="button">清除</button>
+        <button class="icon-button" id="themeButton" type="button" aria-label="切換色彩主題" title="切換深淺色">◐</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="workspace-grid">
+        <section class="panel input-panel">
+          <div class="panel-heading"><div><span class="eyebrow">01 / INPUT</span><h2>貼上要分析的文字</h2></div><span class="privacy-badge"><span>●</span> 僅在本機處理</span></div>
+          <textarea id="rawInput" spellcheck="false" placeholder="貼上或輸入要解析的文字…" aria-label="原始文字輸入"></textarea>
+          <div class="panel-foot"><span id="textStats">0 字元 · 0 行</span><span>最多 50,000 筆匹配</span></div>
+        </section>
+
+        <section class="regex-card panel">
+          <div class="section-heading"><div><span class="eyebrow">02 / PATTERN</span><h1>設定正則表達式</h1></div><div class="regex-status" id="status" role="status"><span class="status-dot"></span><span>準備就緒</span></div></div>
+          <div class="pattern-row"><span class="slash">/</span><input id="patternInput" class="pattern-input" spellcheck="false" autocomplete="off" aria-label="正則表達式" placeholder="輸入正則表達式，例如 (?&lt;date&gt;\\d{4}-\\d{2}-\\d{2})"><span class="slash">/</span><div class="flag-list" aria-label="正則旗標"><label><input type="checkbox" data-flag="g" checked disabled><span>g</span></label><label><input type="checkbox" data-flag="m" checked><span>m</span></label><label><input type="checkbox" data-flag="i"><span>i</span></label><label><input type="checkbox" data-flag="s"><span>s</span></label><label><input type="checkbox" data-flag="u"><span>u</span></label></div>
+            <details class="presets"><summary title="正則範本">▦</summary><div class="preset-menu" id="presetMenu"></div></details>
+          </div>
+          <div class="regex-footer"><span id="patternError" class="error-text"></span><div class="option-group"><label class="switch-label"><input type="checkbox" id="trimOption"><span class="switch"></span>修剪空白</label><label class="switch-label"><input type="checkbox" id="emptyOption"><span class="switch"></span>排除空列</label><label class="placeholder-label">空值顯示 <input id="placeholderInput" type="text" value="" placeholder="空字串" aria-label="空值替代文字"></label></div></div>
+        </section>
+
+      <div class="workspace-grid">
+        <section class="panel results-panel">
+          <div class="panel-heading results-heading"><div><span class="eyebrow">03 / RESULTS</span><h2>擷取結果 <span class="count-pill" id="matchCount">0</span></h2></div><button id="columnsButton" class="button subtle small" type="button">管理欄位</button></div>
+          <div class="result-meta"><span id="parseMeta">等待正則與文字</span><span id="resultSummary"></span></div>
+          <div class="toolbar"><label class="filter-box"><span>⌕</span><input id="quickFilter" type="search" placeholder="篩選結果…" aria-label="篩選結果"></label><label class="page-size">每頁 <select id="pageSize"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label><button class="button subtle small" id="copyButton" type="button">複製</button><button class="button primary small" id="downloadButton" type="button">下載</button></div>
+          <details class="export-settings"><summary>匯出格式與進階選項</summary><div class="export-options"><label>格式 <select id="exportFormat"><option value="csv">CSV</option><option value="tsv">TSV</option><option value="json">JSON</option><option value="md">Markdown</option><option value="sql">SQL Insert</option></select></label><label class="delimiter-control" id="delimiterControl">分隔符 <input id="delimiterInput" type="text" value="," maxlength="4" aria-label="自訂分隔符"></label><label class="compact-control" id="minifiedControl"><input type="checkbox" id="minifiedOption"> Minified</label><label class="compact-control" id="internalControl"><input type="checkbox" id="internalOption"> 保留內部欄位</label><label class="sql-control" id="sqlControl">資料表 <input id="tableName" value="records" aria-label="SQL 資料表名稱"></label><label class="compact-control" id="fullMatchControl"><input type="checkbox" id="fullMatchOption"> 保留完整匹配</label></div></details>
+          <details class="column-menu" id="columnMenu"><summary>欄位顯示與重新命名</summary><div id="columnControls" class="column-controls"></div></details>
+          <div class="table-wrap" id="tableWrap"><table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table><div id="emptyState" class="empty-state"><div class="empty-icon">⌕</div><strong>尚無擷取結果</strong><span>貼上文字並輸入正則表達式，結果會即時顯示。</span></div></div>
+          <div class="pagination"><span id="pageInfo">0 筆結果</span><div><button id="prevPage" class="page-button" type="button" aria-label="上一頁">←</button><span id="pageLabel">1 / 1</span><button id="nextPage" class="page-button" type="button" aria-label="下一頁">→</button></div></div>
+        </section>
+      </div>
+      <section class="panel preview-panel"><button class="preview-toggle" id="previewToggle" type="button" aria-expanded="false"><span><span class="eyebrow">EXPORT PREVIEW</span><strong>預覽輸出內容</strong></span><span id="previewChevron">＋</span></button><pre id="previewCode" hidden></pre></section>
+    </main>
+    <footer class="app-footer"><span>Regex Extract & Tabular</span><span>零伺服器傳輸 · 離線可用</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+[package]
+name = "regex-extract-tabular"
+version = "1.0.0"
+description = "Offline Regex Extract & Tabular desktop application"
+authors = ["Regex Extract & Tabular"]
+license = "MIT"
+edition = "2024"
+rust-version = "1.90"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "regex_extract_tabular_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.2", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.3", features = [] }
+tauri-plugin-dialog = "2"
