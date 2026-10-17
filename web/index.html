@@ -30,7 +30,7 @@
         <section class="regex-card panel">
           <div class="section-heading"><div><span class="eyebrow">02 / PATTERN</span><h1>設定正則表達式</h1></div><div class="regex-status" id="status" role="status"><span class="status-dot"></span><span>準備就緒</span></div></div>
           <div class="pattern-row"><span class="slash">/</span><input id="patternInput" class="pattern-input" spellcheck="false" autocomplete="off" aria-label="正則表達式" placeholder="輸入正則表達式，例如 (?&lt;date&gt;\\d{4}-\\d{2}-\\d{2})"><span class="slash">/</span><div class="flag-list" aria-label="正則旗標"><label><input type="checkbox" data-flag="g" checked disabled><span>g</span></label><label><input type="checkbox" data-flag="m" checked><span>m</span></label><label><input type="checkbox" data-flag="i"><span>i</span></label><label><input type="checkbox" data-flag="s"><span>s</span></label><label><input type="checkbox" data-flag="u"><span>u</span></label></div>
-            <details class="presets"><summary title="正則範本">▦</summary><div class="preset-menu" id="presetMenu"></div></details>
+            <details class="presets" id="presetMenu"><summary title="正則範本" aria-label="開啟正則範本">▦</summary><div class="preset-menu"><label class="preset-search"><span aria-hidden="true">⌕</span><input id="presetSearch" type="search" placeholder="搜尋範本…" aria-label="搜尋正則範本"></label><div class="preset-results" id="presetResults" aria-live="polite"></div></div></details>
           </div>
           <div class="regex-footer"><span id="patternError" class="error-text"></span><div class="option-group"><label class="switch-label"><input type="checkbox" id="trimOption"><span class="switch"></span>修剪空白</label><label class="switch-label"><input type="checkbox" id="emptyOption"><span class="switch"></span>排除空列</label><label class="placeholder-label">空值顯示 <input id="placeholderInput" type="text" value="" placeholder="空字串" aria-label="空值替代文字"></label></div></div>
         </section>
@@ -51,6 +51,7 @@
     <footer class="app-footer"><span>Regex Extract & Tabular</span><span>零伺服器傳輸 · 離線可用</span></footer>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="regex-presets.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

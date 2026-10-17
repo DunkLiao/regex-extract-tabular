@@ -1,6 +1,7 @@
 ﻿(() => {
   const $ = (selector) => document.querySelector(selector);
   const rawInput = $('#rawInput'), patternInput = $('#patternInput'), workerUrl = new URL('./regex-worker.js', location.href);
+  const { filterPresets } = window.RegexPresetCatalog;
   const state = { result: { isValid: true, columns: [], rows: [], totalMatches: 0, executionTimeMs: 0 }, aliases: new Map(), hidden: new Set(), sortKey: '', sortDirection: 1, page: 1, filteredRows: [], worker: null, timer: 0, requestId: 0, scrollFrame: 0 };
   const samples = {
     nginx: { pattern: '^(?<ip>\\S+) \\S+ \\S+ \\[(?<time>[^\\]]+)\\] "(?<method>\\S+) (?<path>\\S+) [^\\"]+" (?<status>\\d{3}) (?<bytes>\\d+)', flags: ['g','m'], text: '203.0.113.10 - - [15/Oct/2026:10:31:08 +0800] "GET /dashboard HTTP/1.1" 200 1842\n198.51.100.22 - - [15/Oct/2026:10:32:19 +0800] "POST /api/login HTTP/1.1" 401 312\n203.0.113.10 - - [15/Oct/2026:10:35:43 +0800] "GET /assets/app.css HTTP/1.1" 200 9231' },
@@ -8,17 +9,18 @@
     contacts: { pattern: '(?<name>[^,\\n]+),(?<email>[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,})(?:,(?<phone>[+\\d -]+))?', flags: ['g','m'], text: 'Avery Chen,avery@example.com,+886 912 345 678\nMorgan Lee,morgan.lee@example.org\nJordan Wu,jordan@example.net,+1 415 555 0134' },
     commits: { pattern: '^(?<hash>[0-9a-f]{7,40}) (?<date>\\d{4}-\\d{2}-\\d{2}) (?<author>[^|]+)\\|(?<subject>.+)$', flags: ['g','m'], text: 'a41f2c9 2026-10-14 Alex Chen|Add batch export options\n7b09d11 2026-10-13 Sam Wu|Fix empty capture handling\ncf318ea 2026-10-12 Alex Chen|Improve table sorting and filtering' }
   };
-  const regexPresets = [
-    ['日期時間','(?<date>\\d{4}-\\d{2}-\\d{2})[ T](?<time>\\d{2}:\\d{2}:\\d{2})'],
-    ['電子郵件','(?<email>[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,})'],
-    ['URL','(?<url>https?:\\/\\/[^\\s<>"\']+)'],
-    ['IPv4','(?<ipv4>(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1?\\d?\\d)){3})'],
-    ['IPv6','(?<ipv6>(?:[\\da-fA-F]{1,4}:){2,7}[\\da-fA-F]{1,4})'],
-    ['金額','(?<currency>[$€£¥])?\\s*(?<amount>-?\\d[\\d,]*(?:\\.\\d{1,2})?)'],
-    ['自訂捕獲樣板','(?<field_name>.*?)']
-  ];
-  $('#presetMenu').innerHTML = regexPresets.map(([name, pattern]) => `<button type="button" data-pattern="${escapeAttr(pattern)}">${escapeHtml(name)}<small>${escapeHtml(pattern)}</small></button>`).join('');
+  renderPresetMenu();
 
+  function renderPresetMenu(query = '') {
+    const groups = new Map();
+    for (const preset of filterPresets(query)) {
+      if (!groups.has(preset.category)) groups.set(preset.category, []);
+      groups.get(preset.category).push(preset);
+    }
+    $('#presetResults').innerHTML = groups.size
+      ? [...groups].map(([category, items]) => `<details class="preset-group" ${query ? 'open' : ''}><summary>${escapeHtml(category)}<span>${items.length}</span></summary><div class="preset-group-items">${items.map(({ name, description, pattern }) => `<button type="button" class="preset-item" data-pattern="${escapeAttr(pattern)}" title="${escapeAttr(description)}"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(description)}</small><code>${escapeHtml(pattern)}</code></button>`).join('')}</div></details>`).join('')
+      : '<p class="preset-empty">找不到符合的範本，試試其他關鍵字。</p>';
+  }
   function createWorker() {
     if (state.worker) state.worker.terminate();
     state.worker = new Worker(workerUrl);
@@ -182,7 +184,8 @@
   ['trimOption','emptyOption','placeholderInput'].forEach(id=>$('#'+id).addEventListener('input',scheduleParse));
   $('#sampleSelect').addEventListener('change',event=>{const sample=samples[event.target.value];if(!sample)return;rawInput.value=sample.text;patternInput.value=sample.pattern;document.querySelectorAll('[data-flag]').forEach(input=>{if(input.dataset.flag==='g')return;input.checked=sample.flags.includes(input.dataset.flag);});$('#quickFilter').value='';updateTextStats();scheduleParse();event.target.value='';});
   $('#clearButton').addEventListener('click',()=>{rawInput.value='';patternInput.value='';$('#quickFilter').value='';updateTextStats();scheduleParse();});
-  $('#presetMenu').addEventListener('click',event=>{const button=event.target.closest('[data-pattern]');if(!button)return;patternInput.value=button.dataset.pattern;$('#presetMenu').closest('details').open=false;scheduleParse();});
+  $('#presetSearch').addEventListener('input',event=>renderPresetMenu(event.currentTarget.value));
+  $('#presetMenu').addEventListener('click',event=>{const button=event.target.closest('[data-pattern]');if(!button)return;patternInput.value=button.dataset.pattern;$('#presetMenu').closest('details').open=false;$('#presetSearch').value='';renderPresetMenu();scheduleParse();});
   $('#themeButton').addEventListener('click',()=>{document.body.classList.toggle('light');$('#themeButton').textContent=document.body.classList.contains('light')?'☾':'◐';});
   $('#quickFilter').addEventListener('input',()=>{state.page=1;applyFilter();renderTable();$('#resultSummary').textContent=`${state.filteredRows.length.toLocaleString()} 筆顯示`;renderExports();});
   $('#pageSize').addEventListener('change',()=>{state.page=1;renderTable();});
